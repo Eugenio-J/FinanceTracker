@@ -36,6 +36,7 @@ namespace FinanceTracker.API.Controllers
 		[HttpGet("{id}")]
 		public async Task<IActionResult> GetById(Guid id)
 		{
+			//try changes
 			var userId = GetUserId();
 			_logger.LogInformation("Getting account {AccountId} for user {UserId}", id, userId);
 			var account = await _accountService.GetByIdAsync(userId, id);
