@@ -1,0 +1,41 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# NuGet
+*.nupkg
+**/packages/*
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# Node / Frontend
+node_modules/
+dist/
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Secrets / Environment-specific config
+appsettings.Development.json
+appsettings.Production.json
+*.pfx
+*.key
+
+# EF Migrations local db
+*.mdf
+*.ldf

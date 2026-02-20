@@ -1,0 +1,29 @@
+Core Features (Based on My Workflow)
+1. Account Management
+Track multiple accounts with current balances:
+	• Unionbank (Payroll)
+	• Maribank (Hub account)
+	• GCash (Parking payments)
+	• Maya (Savings)
+	• BPI (Cash withdrawals)
+2. Salary Distribution Tracking
+Every bi-weekly cycle, record:
+	• Salary amount received in Unionbank
+	• Transfers to Maribank (with date and amount)
+	• From Maribank, track splits to: 
+		○ GCash (parking fund)
+		○ Maya (savings target)
+		○ Remaining balance (for Shopee, insurance)
+	• Transfer to BPI (cash holdings)
+Key requirement: Auto-calculate remaining balance after each transfer
+3. Expense Tracking
+	• Manual expense entry with: 
+		○ Date, amount, category, account used, description
+		○ Categories: Parking, Shopee, Insurance, Cash expenses, Food, Transport, etc.
+	• Monthly expense summary by category and account
+	• Compare actual vs planned distribution
+4. Dashboard Views
+	• Current balance across all accounts
+	• Next salary date countdown (bi-weekly schedule)
+	• Month-to-date expenses by category
+	• Salary distribution history (last 6 cycles)
