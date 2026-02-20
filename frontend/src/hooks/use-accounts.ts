@@ -8,6 +8,7 @@ export function useAccounts() {
     queryKey: ['accounts'],
     queryFn: async () => {
       const res = await api.get<ApiResult<Account[]>>('/accounts')
+      //try commit
       return res.data.data!
     },
   })
