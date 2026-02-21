@@ -160,7 +160,7 @@ public class AuthService : IAuthService
 			UserId = userId,
 			Token = HashToken(refreshTokenString),
 			Family = family ?? Guid.NewGuid().ToString(),
-			ExpiresAt = PhilippineDateTime.Now.AddMinutes(2),
+			ExpiresAt = PhilippineDateTime.Now.AddDays(expirationDays),
 			//ExpiresAt = PhilippineDateTime.Now.AddMinutes(2),
 			CreatedAt = PhilippineDateTime.Now
 		};
@@ -187,9 +187,8 @@ public class AuthService : IAuthService
 			issuer: _configuration["Jwt:Issuer"],
 			audience: _configuration["Jwt:Audience"],
 			claims: claims,
-			expires: DateTime.UtcNow.AddMinutes(2),
-			//expires: DateTime.UtcNow.AddMinutes(
-			//	int.Parse(_configuration["Jwt:ExpirationInMinutes"]!)),
+			expires: DateTime.UtcNow.AddMinutes(
+				int.Parse(_configuration["Jwt:ExpirationInMinutes"]!)),
 			signingCredentials: credentials
 		);
 

@@ -98,7 +98,6 @@ namespace FinanceTracker.API.Controllers
 				Secure = !_environment.IsDevelopment(),
 				SameSite = SameSiteMode.Strict,
 				Path = "/api/auth",
-				//Expires = DateTimeOffset.UtcNow.AddMinutes(2)
 				Expires = DateTimeOffset.UtcNow.AddDays(expirationDays)
 			});
 		}
