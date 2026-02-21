@@ -1,4 +1,5 @@
 ﻿using FinanceTracker.Domain.Enums;
+using FinanceTracker.Domain.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -14,7 +15,7 @@ namespace FinanceTracker.Domain.Entities
 		public TransactionCategory Category { get; set; }
 		public string? Description { get; set; }
 		public DateTime Date { get; set; }
-		public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+		public DateTime CreatedAt { get; set; } = PhilippineDateTime.Now;
 
 		// For transfers: reference to the other side
 		public Guid? RelatedTransactionId { get; set; }

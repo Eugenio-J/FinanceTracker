@@ -11,5 +11,6 @@ namespace FinanceTracker.Application.Interfaces
 		Task<Result<AuthResponseDTO>> LoginAsync(LoginDTO dto);
 		Task<Result<AuthResponseDTO>> RegisterAsync(RegisterDTO dto);
 		Task<Result<AuthResponseDTO>> RefreshTokenAsync(string refreshToken);
+		Task<Result> LogoutAsync(Guid userId);
 	}
 }

@@ -1,4 +1,5 @@
 using FinanceTracker.Domain.Entities;
+using FinanceTracker.Domain.Helpers;
 using FinanceTracker.Domain.Interfaces;
 using FinanceTracker.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,7 @@ namespace FinanceTracker.Infrastructure.Repositories
 		public async Task<IEnumerable<RefreshToken>> GetActiveByFamilyAsync(string family)
 		{
 			return await _dbSet
-				.Where(rt => rt.Family == family && rt.RevokedAt == null && rt.ExpiresAt > DateTime.UtcNow)
+				.Where(rt => rt.Family == family && rt.RevokedAt == null && rt.ExpiresAt > PhilippineDateTime.Now)
 				.ToListAsync();
 		}
 
@@ -29,7 +30,7 @@ namespace FinanceTracker.Infrastructure.Repositories
 
 			foreach (var token in tokens)
 			{
-				token.RevokedAt = DateTime.UtcNow;
+				token.RevokedAt = PhilippineDateTime.Now;
 			}
 		}
 
@@ -41,7 +42,7 @@ namespace FinanceTracker.Infrastructure.Repositories
 
 			foreach (var token in tokens)
 			{
-				token.RevokedAt = DateTime.UtcNow;
+				token.RevokedAt = PhilippineDateTime.Now;
 			}
 		}
 	}

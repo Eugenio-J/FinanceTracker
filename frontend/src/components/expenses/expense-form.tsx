@@ -10,6 +10,7 @@ import { useCreateExpense } from '@/hooks/use-expenses'
 import { useAccounts } from '@/hooks/use-accounts'
 import { ExpenseCategories } from '@/types/api'
 import { format } from 'date-fns'
+import { philippineNow } from '@/lib/utils'
 
 const schema = z.object({
   accountId: z.string().min(1, 'Account is required'),
@@ -37,7 +38,7 @@ export function ExpenseForm({ open, onOpenChange }: ExpenseFormProps) {
       amount: '',
       category: '',
       description: '',
-      date: format(new Date(), 'yyyy-MM-dd'),
+      date: format(philippineNow(), 'yyyy-MM-dd'),
     },
   })
 

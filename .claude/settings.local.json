@@ -5,7 +5,8 @@
       "Bash(dir:*)",
       "Bash(npm create:*)",
       "Bash(npm install)",
-      "Bash(npx shadcn@latest add:*)"
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(taskkill:*)"
     ]
   }
 }

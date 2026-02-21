@@ -2,6 +2,7 @@ using FinanceTracker.Application.DTOs.Auth;
 using FinanceTracker.Application.DTOs.Common;
 using FinanceTracker.Application.Interfaces;
 using FinanceTracker.Domain.Entities;
+using FinanceTracker.Domain.Helpers;
 using FinanceTracker.Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -79,6 +80,7 @@ public class AuthService : IAuthService
 
 	public async Task<Result<AuthResponseDTO>> RefreshTokenAsync(string refreshToken)
 	{
+
 		var storedToken = await _unitOfWork.RefreshTokens.GetByTokenAsync(refreshToken);
 
 		if (storedToken == null)
@@ -103,7 +105,7 @@ public class AuthService : IAuthService
 		}
 
 		// Rotate: revoke current, create new in same family
-		storedToken.RevokedAt = DateTime.UtcNow;
+		storedToken.RevokedAt = PhilippineDateTime.Now;
 		var newRefreshToken = await CreateRefreshTokenEntity(storedToken.UserId, storedToken.Family);
 		storedToken.ReplacedByToken = newRefreshToken.Token;
 		await _unitOfWork.SaveChangesAsync();
@@ -122,6 +124,15 @@ public class AuthService : IAuthService
 		return Result<AuthResponseDTO>.Success(response);
 	}
 
+	public async Task<Result> LogoutAsync(Guid userId)
+	{
+		await _unitOfWork.RefreshTokens.RevokeAllByUserIdAsync(userId);
+		await _unitOfWork.SaveChangesAsync();
+
+		_logger.LogInformation("All refresh tokens revoked for user {UserId}", userId);
+		return Result.Success();
+	}
+
 	private static string GenerateRefreshTokenString()
 	{
 		var bytes = new byte[64];
@@ -130,18 +141,28 @@ public class AuthService : IAuthService
 		return Convert.ToBase64String(bytes);
 	}
 
+	private string HashToken(string token)
+	{
+		using var sha = SHA256.Create();
+		var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(token));
+		return Convert.ToBase64String(bytes);
+	}
+
 	private async Task<RefreshToken> CreateRefreshTokenEntity(Guid userId, string? family = null)
 	{
 		var expirationDays = int.Parse(_configuration["Jwt:RefreshTokenExpirationInDays"] ?? "7");
+
+		var refreshTokenString = GenerateRefreshTokenString();	
 
 		var refreshToken = new RefreshToken
 		{
 			Id = Guid.NewGuid(),
 			UserId = userId,
-			Token = GenerateRefreshTokenString(),
+			Token = HashToken(refreshTokenString),
 			Family = family ?? Guid.NewGuid().ToString(),
-			ExpiresAt = DateTime.UtcNow.AddDays(expirationDays),
-			CreatedAt = DateTime.UtcNow
+			ExpiresAt = PhilippineDateTime.Now.AddMinutes(2),
+			//ExpiresAt = PhilippineDateTime.Now.AddMinutes(2),
+			CreatedAt = PhilippineDateTime.Now
 		};
 
 		await _unitOfWork.RefreshTokens.AddAsync(refreshToken);
@@ -162,12 +183,13 @@ public class AuthService : IAuthService
 			new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}")
 		};
 
-		var token = new JwtSecurityToken(
+	var token = new JwtSecurityToken(
 			issuer: _configuration["Jwt:Issuer"],
 			audience: _configuration["Jwt:Audience"],
 			claims: claims,
-			expires: DateTime.UtcNow.AddMinutes(
-				int.Parse(_configuration["Jwt:ExpirationInMinutes"]!)),
+			expires: DateTime.UtcNow.AddMinutes(2),
+			//expires: DateTime.UtcNow.AddMinutes(
+			//	int.Parse(_configuration["Jwt:ExpirationInMinutes"]!)),
 			signingCredentials: credentials
 		);
 

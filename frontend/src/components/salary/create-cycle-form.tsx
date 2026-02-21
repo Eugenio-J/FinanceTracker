@@ -12,6 +12,7 @@ import { useCreateCycle } from '@/hooks/use-salary-cycles'
 import { useAccounts } from '@/hooks/use-accounts'
 import { Plus } from 'lucide-react'
 import { format } from 'date-fns'
+import { philippineNow } from '@/lib/utils'
 import type { CreateDistribution } from '@/types/api'
 
 const schema = z.object({
@@ -41,7 +42,7 @@ export function CreateCycleForm({ open, onOpenChange }: CreateCycleFormProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      payDate: format(new Date(), 'yyyy-MM-dd'),
+      payDate: format(philippineNow(), 'yyyy-MM-dd'),
       grossSalary: '',
       netSalary: '',
     },

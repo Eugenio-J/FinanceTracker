@@ -3,6 +3,7 @@ using FinanceTracker.Application.DTOs.Transaction;
 using FinanceTracker.Application.Interfaces;
 using FinanceTracker.Domain.Entities;
 using FinanceTracker.Domain.Enums;
+using FinanceTracker.Domain.Helpers;
 using FinanceTracker.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -107,7 +108,7 @@ namespace FinanceTracker.Application.Services
 				Category = category,
 				Description = request.Description,
 				Date = request.Date,
-				CreatedAt = DateTime.UtcNow
+				CreatedAt = PhilippineDateTime.Now
 			};
 
 			// Update account balance
@@ -123,7 +124,7 @@ namespace FinanceTracker.Application.Services
 					break;
 			}
 
-			account.UpdatedAt = DateTime.UtcNow;
+			account.UpdatedAt = PhilippineDateTime.Now;
 			_unitOfWork.Accounts.Update(account);
 			await _unitOfWork.Transactions.AddAsync(transaction);
 			await _unitOfWork.SaveChangesAsync();
@@ -156,7 +157,7 @@ namespace FinanceTracker.Application.Services
 					break;
 			}
 
-			account.UpdatedAt = DateTime.UtcNow;
+			account.UpdatedAt = PhilippineDateTime.Now;
 			_unitOfWork.Accounts.Update(account);
 			_unitOfWork.Transactions.Delete(transaction);
 			await _unitOfWork.SaveChangesAsync();

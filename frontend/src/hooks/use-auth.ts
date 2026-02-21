@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
+import axios from 'axios'
 import api from '@/lib/axios'
 import { useAuthStore } from '@/stores/auth-store'
 import type { LoginRequest, RegisterRequest, AuthResponse, ApiResult } from '@/types/api'
@@ -16,7 +18,7 @@ export function useLogin() {
     },
     onSuccess: (result) => {
       if (result.isSuccess && result.data) {
-        login(result.data.token, result.data.refreshToken, {
+        login(result.data.token, {
           email: result.data.email,
           firstName: result.data.firstName,
           lastName: result.data.lastName,
@@ -44,7 +46,7 @@ export function useRegister() {
     },
     onSuccess: (result) => {
       if (result.isSuccess && result.data) {
-        login(result.data.token, result.data.refreshToken, {
+        login(result.data.token, {
           email: result.data.email,
           firstName: result.data.firstName,
           lastName: result.data.lastName,
@@ -60,4 +62,55 @@ export function useRegister() {
       toast.error(msg)
     },
   })
+}
+
+export function useLogout() {
+  const logout = useAuthStore((s) => s.logout)
+  const navigate = useNavigate()
+
+  return useMutation({
+    mutationFn: async () => {
+      await api.post('/auth/logout')
+    },
+    onSettled: () => {
+      logout()
+      navigate('/login')
+    },
+  })
+}
+
+// Module-level singleton: ensures only one refresh request is ever in-flight,
+// even when React StrictMode double-mounts the component.
+let silentRefreshPromise: Promise<void> | null = null
+
+export function useSilentRefresh() {
+  useEffect(() => {
+    if (!silentRefreshPromise) {
+      silentRefreshPromise = axios
+        .post<ApiResult<AuthResponse>>('/api/auth/refresh', {}, { withCredentials: true })
+        .then((res) => {
+          if (res.data.isSuccess && res.data.data) {
+            useAuthStore.getState().login(res.data.data.token, {
+              email: res.data.data.email,
+              firstName: res.data.data.firstName,
+              lastName: res.data.data.lastName,
+            })
+          }
+        })
+        .catch(() => {
+          // No valid refresh token — user stays logged out
+        })
+        .finally(() => {
+          useAuthStore.getState().setInitialized(true)
+          silentRefreshPromise = null
+        })
+    } else {
+      // Second mount (StrictMode) — wait for the existing request to finish
+      silentRefreshPromise.then(() => {
+        if (!useAuthStore.getState().isInitialized) {
+          useAuthStore.getState().setInitialized(true)
+        }
+      })
+    }
+  }, [])
 }

@@ -9,8 +9,10 @@ import { AccountDetailPage } from '@/pages/account-detail'
 import { TransactionsPage } from '@/pages/transactions'
 import { ExpensesPage } from '@/pages/expenses'
 import { SalaryCyclesPage } from '@/pages/salary-cycles'
+import { useSilentRefresh } from '@/hooks/use-auth'
 
 export function App() {
+  useSilentRefresh()
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />

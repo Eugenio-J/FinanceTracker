@@ -6,6 +6,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function philippineNow(): Date {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }))
+}
+
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-PH', {
     style: 'currency',

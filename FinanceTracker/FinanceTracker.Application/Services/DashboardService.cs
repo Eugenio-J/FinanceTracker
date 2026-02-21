@@ -2,6 +2,7 @@ using System.Diagnostics;
 using FinanceTracker.Application.DTOs.Dashboard;
 using FinanceTracker.Application.DTOs.Expense;
 using FinanceTracker.Application.Interfaces;
+using FinanceTracker.Domain.Helpers;
 using FinanceTracker.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -67,13 +68,13 @@ namespace FinanceTracker.Application.Services
 			if (nextPayDate == null)
 				return new SalaryCountdownDto(DateTime.MinValue, -1);
 
-			var daysUntil = (int)(nextPayDate.Value.Date - DateTime.UtcNow.Date).TotalDays;
+			var daysUntil = (int)(nextPayDate.Value.Date - PhilippineDateTime.Now.Date).TotalDays;
 			return new SalaryCountdownDto(nextPayDate.Value, daysUntil);
 		}
 
 		public async Task<ExpenseSummaryDto> GetMonthToDateExpensesAsync(Guid userId)
 		{
-			var now = DateTime.UtcNow;
+			var now = PhilippineDateTime.Now;
 			return await _expenseService.GetMonthlySummaryAsync(userId, now.Year, now.Month);
 		}
 	}

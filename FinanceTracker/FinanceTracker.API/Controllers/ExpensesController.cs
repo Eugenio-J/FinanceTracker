@@ -1,6 +1,7 @@
 using FinanceTracker.Application.DTOs.Common;
 using FinanceTracker.Application.DTOs.Expense;
 using FinanceTracker.Application.Interfaces;
+using FinanceTracker.Domain.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -49,7 +50,7 @@ namespace FinanceTracker.API.Controllers
 			[FromQuery] int? month = null)
 		{
 			var userId = GetUserId();
-			var now = DateTime.UtcNow;
+			var now = PhilippineDateTime.Now;
 			_logger.LogInformation("Getting expense summary for user {UserId}, {Year}-{Month}", userId, year ?? now.Year, month ?? now.Month);
 			var summary = await _expenseService.GetMonthlySummaryAsync(
 				userId, year ?? now.Year, month ?? now.Month);

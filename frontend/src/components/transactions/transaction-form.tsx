@@ -10,6 +10,7 @@ import { useCreateTransaction } from '@/hooks/use-transactions'
 import { useAccounts } from '@/hooks/use-accounts'
 import { TransactionTypes, TransactionCategories } from '@/types/api'
 import { format } from 'date-fns'
+import { philippineNow } from '@/lib/utils'
 
 const schema = z.object({
   accountId: z.string().min(1, 'Account is required'),
@@ -39,7 +40,7 @@ export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
       transactionType: '',
       category: '',
       description: '',
-      date: format(new Date(), 'yyyy-MM-dd'),
+      date: format(philippineNow(), 'yyyy-MM-dd'),
     },
   })
 

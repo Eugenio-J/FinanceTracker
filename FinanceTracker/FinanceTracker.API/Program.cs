@@ -44,6 +44,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 			IssuerSigningKey = new SymmetricSecurityKey(
 				Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
 		};
+
+		options.Events = new JwtBearerEvents
+		{
+			OnTokenValidated = context =>
+			{
+				Console.WriteLine("Token valid");
+				return Task.CompletedTask;
+			},
+			OnAuthenticationFailed = context =>
+			{
+				Console.WriteLine("Token invalid: " + context.Exception.Message);
+				return Task.CompletedTask;
+			}
+		};
 	});
 
 // CORS
