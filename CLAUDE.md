@@ -25,7 +25,7 @@ cd frontend && npm run dev
 
 Clean Architecture with four layers. Dependencies flow inward: API → Application → Domain; Infrastructure → Domain.
 
-- **FinanceTracker.Domain** — Entities (`User`, `Account`, `Transactions`, `SalaryCycle`, `SalaryDistribution`, `Expense`), enums, and repository interfaces. No external dependencies.
+- **FinanceTracker.Domain** — Entities (`User`, `Account`, `Transactions`, `SalaryCycle`, `SalaryDistribution`, `Expense`, `RefreshToken`), enums, and repository interfaces. No external dependencies.
 - **FinanceTracker.Application** — Service interfaces/implementations, DTOs, FluentValidation validators, AutoMapper profiles. Contains `Result<T>` wrapper for standardized responses.
 - **FinanceTracker.Infrastructure** — EF Core `DataContext`, repository implementations, Unit of Work pattern (`IUnitOfWork`/`UnitOfWork` with transaction support), `CurrentUserService`.
 - **FinanceTracker.API** — ASP.NET Core Web API controllers, `ExceptionMiddleware`, Program.cs startup. Routes follow `api/[controller]` convention.
@@ -35,7 +35,8 @@ Clean Architecture with four layers. Dependencies flow inward: API → Applicati
 - **Repository + Unit of Work**: Generic `IRepository<T>` base with specialized repositories. `IUnitOfWork` coordinates saves and transactions (`BeginTransactionAsync`/`CommitTransactionAsync`/`RollbackTransactionAsync`).
 - **Result<T> wrapper**: All controller endpoints wrap responses in `Result<T>.Success()` or `Result<T>.Created()` from `Application/DTOs/Common/Result.cs`. This matches the frontend `ApiResult<T>` type (`{ isSuccess, data, error, statusCode }`). AuthController uses `Result<T>` from service layer directly. Delete/NoContent endpoints are the exception (no body).
 - **DI registration**: Each layer has a `DependencyInjection.cs` extension method (`AddApplicationServices`, `AddInfrastructureServices`) called from Program.cs.
-- **JWT auth**: Configured in Program.cs, token generation in `AuthService`. Claims use `NameIdentifier` for user ID.
+- **JWT auth + Refresh Tokens**: Configured in Program.cs, token generation in `AuthService`. Claims use `NameIdentifier` for user ID. Refresh tokens use rotation with family-based reuse detection — stolen tokens trigger revocation of the entire token family. JWT expires in 15 minutes; refresh tokens expire in 7 days (configurable via `Jwt:ExpirationInMinutes` and `Jwt:RefreshTokenExpirationInDays` in appsettings).
+- **Philippine Time (UTC+8)**: All application timestamps use `PhilippineDateTime.Now` from `Domain/Helpers/PhilippineDateTime.cs` instead of `DateTime.UtcNow`. **Exception:** JWT `expires` in `AuthService.GenerateJwtToken` MUST use `DateTime.UtcNow` because ASP.NET Core's JWT Bearer middleware validates the `exp` claim against UTC — using PH time would add ~8 hours of unintended validity. HTTP cookie `Expires` (`DateTimeOffset.UtcNow` in `AuthController`) should also stay UTC-based. Frontend uses `philippineNow()` from `lib/utils.ts` for current date/time.
 - **AutoMapper**: Profile at `Application/Mappings/MappingProfile.cs` — uses `ForCtorParam()` for constructor-mapped DTOs.
 
 ## Tech Stack
@@ -54,7 +55,7 @@ Clean Architecture with four layers. Dependencies flow inward: API → Applicati
 - Tailwind CSS + shadcn/ui components
 - Vite proxy forwards `/api` requests to backend at `http://localhost:5142`
 - All API hooks expect `ApiResult<T>` wrapper (`{ isSuccess, data, error, statusCode }`) — defined in `frontend/src/types/api.ts`
-- Auth flow: login → store JWT in Zustand → axios interceptor attaches `Authorization: Bearer` header → `ProtectedRoute` guards dashboard routes (waits for store hydration before checking token)
+- Auth flow: login → store JWT in Zustand (memory only) + refresh token in HttpOnly cookie → axios interceptor attaches `Authorization: Bearer` header → on 401, interceptor automatically calls `/api/auth/refresh` with cookie to rotate tokens (queues concurrent requests while refreshing) → on refresh failure, logs out and redirects to `/login` → `ProtectedRoute` guards dashboard routes (waits for `isInitialized` before checking token) → on page reload, `useSilentRefresh` attempts cookie-based refresh to restore session
 
 ## Database
 
@@ -65,7 +66,7 @@ Connection string in `appsettings.Development.json` targets `localhost\SQLEXPRES
 All core feature controllers and services are implemented with comprehensive test coverage. React frontend is connected with full auth flow.
 
 ### Implemented Controllers & Endpoints
-- **AuthController** — `POST login`, `POST register` (returns `Result<T>` from service)
+- **AuthController** — `POST login`, `POST register`, `POST refresh` (returns `Result<T>` from service)
 - **AccountsController** — CRUD + `GET total-balance` (Authorized, all wrapped in `Result<T>`)
 - **TransactionsController** — filtered listing with paging, CRUD, by-account lookup (Authorized, all wrapped in `Result<T>`)
 - **SalaryCyclesController** — recent cycles, create, execute distributions, next-payday (Authorized, all wrapped in `Result<T>`)
@@ -78,19 +79,19 @@ All core feature controllers and services are implemented with comprehensive tes
 ### Frontend Pages & Hooks
 - **Pages**: `LoginPage`, `RegisterPage`, `DashboardPage`, plus account/transaction/expense/salary-cycle pages
 - **Hooks**: `useLogin`, `useRegister`, `useDashboard`, `useAccounts`, `useTransactions`, `useExpenses`, `useRecentCycles`, etc.
-- **Stores**: `auth-store.ts` (Zustand + persist) — stores `token`, `user`, `_hasHydrated`
+- **Stores**: `auth-store.ts` (Zustand + persist) — stores `token`, `user`, `isInitialized`; only `user` is persisted to localStorage; exposes `setToken(token)` for silent refresh; `useSilentRefresh` hook in `use-auth.ts` attempts cookie-based refresh on mount
 
-### Test Coverage (~150 tests)
+### Test Coverage (~168 tests)
 
 Tests use **xUnit** `[Fact]`, **Moq** for mocking, **FluentAssertions** for assertions.
 
 #### Integration Tests (`IntegrationTests/Repositories/`)
-- `AccountRepositoryTests`, `TransactionRepositoryTests`, `ExpenseRepositoryTests`, `SalaryCycleRepositoryTests`, `UserRepositoryTests` — all use EF Core InMemory via `TestHelpers.CreateInMemoryContext()`
+- `AccountRepositoryTests`, `TransactionRepositoryTests`, `ExpenseRepositoryTests`, `SalaryCycleRepositoryTests`, `UserRepositoryTests`, `RefreshTokenRepositoryTests` — all use EF Core InMemory via `TestHelpers.CreateInMemoryContext()`
 
 #### Unit Tests — Services (`UnitTests/Services/`)
 - `AccountServiceTests`, `AuthServiceTests`, `TransactionServiceTests`, `ExpenseServiceTests`, `SalaryCycleServiceTests`, `DashboardServiceTests`
 - Pattern: `Mock<IUnitOfWork>`, real `IMapper` via `MapperConfiguration` with `MappingProfile`, service as SUT
-- `AuthServiceTests` uses `ConfigurationBuilder.AddInMemoryCollection` for JWT config
+- `AuthServiceTests` uses `ConfigurationBuilder.AddInMemoryCollection` for JWT config; includes refresh token rotation, reuse detection, and expiration tests
 - `DashboardServiceTests` mocks `IExpenseService` and `ISalaryCycleService` (not repos directly)
 
 #### Unit Tests — Controllers (`UnitTests/Controllers/`)
@@ -102,4 +103,4 @@ Tests use **xUnit** `[Fact]`, **Moq** for mocking, **FluentAssertions** for asse
 ### Test Helpers (`Helpers/TestHelpers.cs`)
 - `CreateInMemoryContext()` — EF Core InMemory `DataContext`
 - `SetupControllerContext()` — sets `ClaimsPrincipal` with `NameIdentifier` claim on controller
-- Factory methods: `CreateTestUser`, `CreateTestAccount`, `CreateTestTransaction`, `CreateTestExpense`, `CreateTestSalaryCycle`
+- Factory methods: `CreateTestUser`, `CreateTestAccount`, `CreateTestTransaction`, `CreateTestExpense`, `CreateTestSalaryCycle`, `CreateTestRefreshToken`

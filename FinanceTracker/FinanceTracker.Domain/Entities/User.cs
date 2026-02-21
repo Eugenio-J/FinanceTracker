@@ -1,4 +1,5 @@
 ﻿using FinanceTracker.Domain.Enums;
+using FinanceTracker.Domain.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Security.Principal;
@@ -14,7 +15,7 @@ namespace FinanceTracker.Domain.Entities
 		public string FirstName { get; set; } = string.Empty;
 		public string LastName { get; set; } = string.Empty;
 		public UserRole Role { get; set; } = UserRole.User;
-		public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+		public DateTime CreatedAt { get; set; } = PhilippineDateTime.Now;
 		public DateTime? UpdatedAt { get; set; }
 
 		// Navigation properties

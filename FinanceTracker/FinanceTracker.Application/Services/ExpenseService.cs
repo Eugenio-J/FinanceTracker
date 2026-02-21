@@ -3,6 +3,7 @@ using FinanceTracker.Application.DTOs.Expense;
 using FinanceTracker.Application.Interfaces;
 using FinanceTracker.Domain.Entities;
 using FinanceTracker.Domain.Enums;
+using FinanceTracker.Domain.Helpers;
 using FinanceTracker.Domain.Interfaces;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
@@ -59,12 +60,12 @@ namespace FinanceTracker.Application.Services
 				Category = Enum.Parse<ExpenseCategory>(dto.Category, true),
 				Description = dto.Description,
 				Date = dto.Date,
-				CreatedAt = DateTime.UtcNow
+				CreatedAt = PhilippineDateTime.Now
 			};
 
 			// Deduct from account balance
 			account.CurrentBalance -= dto.Amount;
-			account.UpdatedAt = DateTime.UtcNow;
+			account.UpdatedAt = PhilippineDateTime.Now;
 			_unitOfWork.Accounts.Update(account);
 
 			// Create transaction record
@@ -77,7 +78,7 @@ namespace FinanceTracker.Application.Services
 				Category = TransactionCategory.Expense,
 				Description = $"Expense: {dto.Category} - {dto.Description}",
 				Date = dto.Date,
-				CreatedAt = DateTime.UtcNow
+				CreatedAt = PhilippineDateTime.Now
 			};
 
 			await _unitOfWork.Expenses.AddAsync(expense);
@@ -121,7 +122,7 @@ namespace FinanceTracker.Application.Services
 			if (account != null)
 			{
 				account.CurrentBalance += expense.Amount;
-				account.UpdatedAt = DateTime.UtcNow;
+				account.UpdatedAt = PhilippineDateTime.Now;
 				_unitOfWork.Accounts.Update(account);
 			}
 

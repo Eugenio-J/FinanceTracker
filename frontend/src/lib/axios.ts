@@ -7,6 +7,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 })
 
 api.interceptors.request.use((config) => {
@@ -60,24 +61,15 @@ api.interceptors.response.use(
     originalRequest._retry = true
     isRefreshing = true
 
-    const refreshToken = useAuthStore.getState().refreshToken
-
-    if (!refreshToken) {
-      isRefreshing = false
-      useAuthStore.getState().logout()
-      window.location.href = '/login'
-      return Promise.reject(error)
-    }
-
     try {
-      // Use raw axios to avoid interceptor loop
-      const res = await axios.post<ApiResult<AuthResponse>>('/api/auth/refresh', {
-        refreshToken,
+      // Use raw axios to avoid interceptor loop; cookie sent automatically
+      const res = await axios.post<ApiResult<AuthResponse>>('/api/auth/refresh', {}, {
+        withCredentials: true,
       })
 
       if (res.data.isSuccess && res.data.data) {
-        const { token: newToken, refreshToken: newRefreshToken } = res.data.data
-        useAuthStore.getState().setTokens(newToken, newRefreshToken)
+        const { token: newToken } = res.data.data
+        useAuthStore.getState().setToken(newToken)
         processQueue(null, newToken)
         originalRequest.headers.Authorization = `Bearer ${newToken}`
         return api(originalRequest)

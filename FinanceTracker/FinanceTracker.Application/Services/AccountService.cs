@@ -3,6 +3,7 @@ using FinanceTracker.Application.DTOs.Account;
 using FinanceTracker.Application.Interfaces;
 using FinanceTracker.Domain.Entities;
 using FinanceTracker.Domain.Enums;
+using FinanceTracker.Domain.Helpers;
 using FinanceTracker.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -51,7 +52,7 @@ namespace FinanceTracker.Application.Services
 				Name = request.Name,
 				AccountType = accountType,
 				CurrentBalance = request.InitialBalance,
-				CreatedAt = DateTime.UtcNow
+				CreatedAt = PhilippineDateTime.Now
 			};
 
 			await _unitOfWork.Accounts.AddAsync(account);
@@ -67,8 +68,8 @@ namespace FinanceTracker.Application.Services
 					TransactionType = TransactionType.Deposit,
 					Category = TransactionCategory.Adjustment,
 					Description = "Initial deposit",
-					Date = DateTime.UtcNow,
-					CreatedAt = DateTime.UtcNow
+					Date = PhilippineDateTime.Now,
+					CreatedAt = PhilippineDateTime.Now
 				};
 				await _unitOfWork.Transactions.AddAsync(transaction);
 			}
@@ -89,7 +90,7 @@ namespace FinanceTracker.Application.Services
 				throw new ArgumentException("Account not found.");
 
 			account.Name = request.Name;
-			account.UpdatedAt = DateTime.UtcNow;
+			account.UpdatedAt = PhilippineDateTime.Now;
 			_unitOfWork.Accounts.Update(account);
 			await _unitOfWork.SaveChangesAsync();
 

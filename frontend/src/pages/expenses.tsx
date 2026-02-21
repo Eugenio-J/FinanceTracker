@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus } from 'lucide-react'
+import { philippineNow } from '@/lib/utils'
 
 export function ExpensesPage() {
   const [formOpen, setFormOpen] = useState(false)
-  const now = new Date()
+  const now = philippineNow()
 
   const { data: expenses, isLoading } = useExpenses()
   const { data: summary, isLoading: summaryLoading } = useMonthlySummary(

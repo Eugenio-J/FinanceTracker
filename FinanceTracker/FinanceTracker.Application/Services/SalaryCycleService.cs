@@ -3,6 +3,7 @@ using FinanceTracker.Application.DTOs.SalaryCycle;
 using FinanceTracker.Application.Interfaces;
 using FinanceTracker.Domain.Entities;
 using FinanceTracker.Domain.Enums;
+using FinanceTracker.Domain.Helpers;
 using FinanceTracker.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -37,7 +38,7 @@ namespace FinanceTracker.Application.Services
 				GrossSalary = dto.GrossSalary,
 				NetSalary = dto.NetSalary,
 				Status = SalaryCycleStatus.Pending,
-				CreatedAt = DateTime.UtcNow
+				CreatedAt = PhilippineDateTime.Now
 			};
 
 			// Add distributions
@@ -116,7 +117,7 @@ namespace FinanceTracker.Application.Services
 					{
 						// Update account balance
 						account.CurrentBalance += amountToTransfer;
-						account.UpdatedAt = DateTime.UtcNow;
+						account.UpdatedAt = PhilippineDateTime.Now;
 						_unitOfWork.Accounts.Update(account);
 
 						// Create transaction
@@ -128,13 +129,13 @@ namespace FinanceTracker.Application.Services
 							TransactionType = TransactionType.Deposit,
 							Category = TransactionCategory.Distribution,
 							Description = $"Salary distribution - {cycle.PayDate:yyyy-MM-dd}",
-							Date = DateTime.UtcNow,
-							CreatedAt = DateTime.UtcNow
+							Date = PhilippineDateTime.Now,
+							CreatedAt = PhilippineDateTime.Now
 						};
 						await _unitOfWork.Transactions.AddAsync(transaction);
 
 						distribution.IsExecuted = true;
-						distribution.ExecutedAt = DateTime.UtcNow;
+						distribution.ExecutedAt = PhilippineDateTime.Now;
 						remainingSalary -= amountToTransfer;
 
 						_logger.LogInformation("Distributed {Amount} to account {AccountId} ({DistributionType})",
@@ -143,7 +144,7 @@ namespace FinanceTracker.Application.Services
 				}
 
 				cycle.Status = SalaryCycleStatus.Completed;
-				cycle.CompletedAt = DateTime.UtcNow;
+				cycle.CompletedAt = PhilippineDateTime.Now;
 
 				await _unitOfWork.SaveChangesAsync();
 				await _unitOfWork.CommitTransactionAsync();

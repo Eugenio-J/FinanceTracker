@@ -1,4 +1,5 @@
 ﻿using FinanceTracker.Domain.Enums;
+using FinanceTracker.Domain.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,7 +14,7 @@ namespace FinanceTracker.Domain.Entities
 		public string Name { get; set; } = string.Empty;
 		public AccountType AccountType { get; set; }
 		public decimal CurrentBalance { get; set; }
-		public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+		public DateTime CreatedAt { get; set; } = PhilippineDateTime.Now;
 		public DateTime? UpdatedAt { get; set; }
 
 		// Navigation properties

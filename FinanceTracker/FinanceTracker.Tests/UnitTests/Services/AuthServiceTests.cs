@@ -269,4 +269,50 @@ public class AuthServiceTests
 		result.IsSuccess.Should().BeFalse();
 		result.StatusCode.Should().Be(401);
 	}
+
+	[Fact]
+	public async Task RefreshTokenAsync_ReturnsUnauthorized_WhenBothTokensExpired()
+	{
+		// Simulate the scenario where the JWT (access token) has expired
+		// and the user attempts to refresh, but the refresh token is also expired
+		var user = CreateUser();
+		var expiredRefreshToken = TestHelpers.CreateTestRefreshToken(user.Id, isExpired: true);
+		_refreshTokenRepo.Setup(r => r.GetByTokenAsync(expiredRefreshToken.Token)).ReturnsAsync(expiredRefreshToken);
+
+		var result = await _sut.RefreshTokenAsync(expiredRefreshToken.Token);
+
+		result.IsSuccess.Should().BeFalse();
+		result.StatusCode.Should().Be(401);
+		result.Error.Should().Be("Refresh token expired");
+		// Should not attempt to rotate or create a new token
+		_refreshTokenRepo.Verify(r => r.AddAsync(It.IsAny<RefreshToken>()), Times.Never);
+		_unitOfWork.Verify(u => u.SaveChangesAsync(), Times.Never);
+	}
+
+	[Fact]
+	public async Task RefreshTokenAsync_DoesNotRevokeFamily_WhenRefreshTokenExpired()
+	{
+		// When a refresh token is simply expired (not reused after revocation),
+		// it should NOT trigger family-wide revocation
+		var family = Guid.NewGuid().ToString();
+		var expiredToken = TestHelpers.CreateTestRefreshToken(Guid.NewGuid(), family: family, isExpired: true);
+		_refreshTokenRepo.Setup(r => r.GetByTokenAsync(expiredToken.Token)).ReturnsAsync(expiredToken);
+
+		await _sut.RefreshTokenAsync(expiredToken.Token);
+
+		_refreshTokenRepo.Verify(r => r.RevokeAllByFamilyAsync(It.IsAny<string>()), Times.Never);
+	}
+
+	[Fact]
+	public async Task LogoutAsync_RevokesAllTokensForUser()
+	{
+		var userId = Guid.NewGuid();
+
+		var result = await _sut.LogoutAsync(userId);
+
+		result.IsSuccess.Should().BeTrue();
+		result.StatusCode.Should().Be(200);
+		_refreshTokenRepo.Verify(r => r.RevokeAllByUserIdAsync(userId), Times.Once);
+		_unitOfWork.Verify(u => u.SaveChangesAsync(), Times.Once);
+	}
 }

@@ -1,4 +1,5 @@
 ﻿using FinanceTracker.Domain.Entities;
+using FinanceTracker.Domain.Helpers;
 using FinanceTracker.Domain.Interfaces;
 using FinanceTracker.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +43,7 @@ namespace FinanceTracker.Infrastructure.Repositories
 		public async Task<DateTime?> GetNextPayDateAsync(Guid userId)
 		{
 			return await _dbSet
-				.Where(s => s.UserId == userId && s.PayDate > DateTime.UtcNow)
+				.Where(s => s.UserId == userId && s.PayDate > PhilippineDateTime.Now)
 				.OrderBy(s => s.PayDate)
 				.Select(s => (DateTime?)s.PayDate)
 				.FirstOrDefaultAsync();

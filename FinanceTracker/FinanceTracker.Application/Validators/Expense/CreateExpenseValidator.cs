@@ -1,5 +1,6 @@
 ﻿using FinanceTracker.Application.DTOs.Expense;
 using FinanceTracker.Domain.Enums;
+using FinanceTracker.Domain.Helpers;
 using FluentValidation;
 using System;
 using System.Collections.Generic;
@@ -28,7 +29,7 @@ namespace FinanceTracker.Application.Validators.Expense
 			RuleFor(x => x.Date)
 				.NotEmpty()
 				.WithMessage("Date is required.")
-				.LessThanOrEqualTo(DateTime.UtcNow.AddDays(1))
+				.LessThanOrEqualTo(PhilippineDateTime.Now.AddDays(1))
 				.WithMessage("Date cannot be in the future.");
 
 			RuleFor(x => x.Description)

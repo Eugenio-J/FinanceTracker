@@ -21,5 +21,4 @@ namespace FinanceTracker.Application.DTOs.Auth
 		string LastName
 	);
 
-	public record RefreshTokenDTO(string RefreshToken);
 }

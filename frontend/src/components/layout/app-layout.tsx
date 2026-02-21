@@ -2,6 +2,7 @@ import { Outlet, NavLink } from 'react-router'
 import { LayoutDashboard, Wallet, ArrowLeftRight, Receipt, CalendarDays, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth-store'
+import { useLogout } from '@/hooks/use-auth'
 import { BottomNav } from './bottom-nav'
 import { Button } from '@/components/ui/button'
 
@@ -15,7 +16,7 @@ const navItems = [
 
 export function AppLayout() {
   const user = useAuthStore((s) => s.user)
-  const logout = useAuthStore((s) => s.logout)
+  const { mutate: logout } = useLogout()
 
   return (
     <div className="min-h-screen bg-background">
@@ -53,7 +54,7 @@ export function AppLayout() {
             <Button
               variant="ghost"
               className="w-full justify-start gap-3"
-              onClick={logout}
+              onClick={() => logout()}
             >
               <LogOut className="h-4 w-4" />
               Logout
