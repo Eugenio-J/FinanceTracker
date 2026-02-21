@@ -29,7 +29,7 @@ interface ExpenseFormProps {
 
 export function ExpenseForm({ open, onOpenChange }: ExpenseFormProps) {
   const createMutation = useCreateExpense()
-  const { data: accounts } = useAccounts()
+  const { data: accounts } = useAccounts(open)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),

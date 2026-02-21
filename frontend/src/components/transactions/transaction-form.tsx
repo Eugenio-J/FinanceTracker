@@ -30,7 +30,7 @@ interface TransactionFormProps {
 
 export function TransactionForm({ open, onOpenChange }: TransactionFormProps) {
   const createMutation = useCreateTransaction()
-  const { data: accounts } = useAccounts()
+  const { data: accounts } = useAccounts(open)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),

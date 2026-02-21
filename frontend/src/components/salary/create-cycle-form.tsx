@@ -36,7 +36,7 @@ interface DistRow {
 
 export function CreateCycleForm({ open, onOpenChange }: CreateCycleFormProps) {
   const createMutation = useCreateCycle()
-  const { data: accounts } = useAccounts()
+  const { data: accounts } = useAccounts(open)
   const [distributions, setDistributions] = useState<DistRow[]>([])
 
   const form = useForm<FormValues>({
