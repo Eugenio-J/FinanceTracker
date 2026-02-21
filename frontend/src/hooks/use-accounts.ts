@@ -3,7 +3,7 @@ import api from '@/lib/axios'
 import type { Account, CreateAccount, UpdateAccount, ApiResult } from '@/types/api'
 import { toast } from 'sonner'
 
-export function useAccounts() {
+export function useAccounts(enabled = true) {
   return useQuery({
     queryKey: ['accounts'],
     queryFn: async () => {
@@ -11,6 +11,7 @@ export function useAccounts() {
       //try commit
       return res.data.data!
     },
+    enabled,
   })
 }
 
